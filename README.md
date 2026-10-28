@@ -28,7 +28,7 @@ simple, practical methods and their compute cost.
 - [x] Baseline CNN
 - [x] Baseline calibration (ECE, NLL, average confidence)
 - [x] Deep ensemble (3 seeds)
-- [ ] MC dropout
+- [x] MC dropout
 - [ ] Test-time augmentation
 - [ ] Distribution shift (corrupted images, SVHN)
 - [ ] Reliability diagrams
@@ -39,6 +39,7 @@ simple, practical methods and their compute cost.
 | Single CNN, seed 0 | 90.3% | 93.2% | 0.030 | 0.297 |
 | Single CNN, seed 1 | 90.5% | 92.9% | 0.025 | 0.292 |
 | Single CNN, seed 2 | 90.3% | 92.7% | 0.025 | 0.298 |
+| MC dropout (seed 0 model, T=20) | 90.2% | 92.4% | 0.023 | 0.291 |
 | Deep ensemble (3 seeds) | 91.5% | 91.7% | 0.010 | 0.253 |
 
 The ensemble improves accuracy by about 1 point and brings average
