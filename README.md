@@ -9,13 +9,14 @@ data changes?
 Classifiers often report high confidence even when they are wrong
 (overconfident). In high-stakes settings, a model should know when it is
 unsure. This project measures that with calibration metrics and compares
-simple, practical methods at comparable compute.
+simple, practical methods and their compute cost.
 
 ## Setup
 - Dataset: CIFAR-10 (50,000 train / 10,000 test images, 10 classes)
 - Model: small CNN (3 conv blocks with BatchNorm, ReLU, MaxPool, then dropout and a linear layer), 1,187,274 parameters
 - Framework: PyTorch, trained on a free Colab T4 GPU
 - Training: SGD with momentum, OneCycle learning rate, 15 epochs, random crop and horizontal flip augmentation
+- Seeds: 0, 1, 2
 
 ## Metrics
 - Accuracy: fraction of test images classified correctly.
@@ -26,27 +27,37 @@ simple, practical methods at comparable compute.
 ## Status
 - [x] Baseline CNN
 - [x] Baseline calibration (ECE, NLL, average confidence)
-- [ ] Deep ensemble (3 seeds)
+- [x] Deep ensemble (3 seeds)
 - [ ] MC dropout
 - [ ] Test-time augmentation
-- [ ] Distribution shift (CIFAR-10-C, SVHN)
+- [ ] Distribution shift (corrupted images, SVHN)
 - [ ] Reliability diagrams
 
 ## Results so far (clean CIFAR-10 test set)
 | Model | Accuracy | Avg confidence | ECE | NLL |
 |---|---|---|---|---|
-| Baseline CNN (single run) | 90.3% | 93.0% | 0.028 | 0.294 |
+| Single CNN, seed 0 | 90.3% | 93.2% | 0.030 | 0.297 |
+| Single CNN, seed 1 | 90.5% | 92.9% | 0.025 | 0.292 |
+| Single CNN, seed 2 | 90.3% | 92.7% | 0.025 | 0.298 |
+| Deep ensemble (3 seeds) | 91.5% | 91.7% | 0.010 | 0.253 |
 
-The baseline is slightly overconfident: it reports 93.0% confidence on
-average but is right 90.3% of the time. Results are from one training run
-and one seed, and may vary by a few tenths of a percent between runs.
+The ensemble improves accuracy by about 1 point and brings average
+confidence in line with accuracy (91.7% confidence vs 91.5% accuracy),
+at 3x the training and inference compute. Single models are slightly
+overconfident (about 2.5 points). The first baseline run in notebook 01
+(unseeded) scored 90.3% accuracy, ECE 0.028, consistent with the seeded runs.
+
+## Notebooks
+- `01_baseline_cnn.ipynb`: data pipeline, model, training, baseline calibration
+- `02_ensemble.ipynb`: 3-seed deep ensemble
 
 ## Run it
-1. Open `01_baseline_cnn.ipynb` in Google Colab.
+1. Open a notebook in Google Colab.
 2. Set Runtime to a GPU (T4).
 3. Run all cells top to bottom. The first run downloads CIFAR-10 (~170 MB).
 
 ## Limitations (so far)
-- Single seed, so no confidence intervals yet.
+- Only three seeds, so no statistical confidence intervals yet.
+- ECE depends on the number of bins, and differences of a few thousandths are within noise.
 - Small CNN, not a state-of-the-art architecture.
-- Distribution shift not yet evaluated.
+- Evaluated on clean test data only; distribution shift not yet tested.
