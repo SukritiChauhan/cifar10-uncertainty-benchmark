@@ -17,22 +17,29 @@ simple, practical methods at comparable compute.
 - Framework: PyTorch, trained on a free Colab T4 GPU
 - Training: SGD with momentum, OneCycle learning rate, 15 epochs, random crop and horizontal flip augmentation
 
+## Metrics
+- Accuracy: fraction of test images classified correctly.
+- Average confidence: mean of the model's top predicted probability.
+- ECE (Expected Calibration Error): gap between confidence and accuracy, averaged over 15 confidence bins. Lower is better.
+- NLL (negative log-likelihood): penalises confident wrong predictions. Lower is better.
+
 ## Status
 - [x] Baseline CNN
-- [ ] Baseline calibration (ECE, NLL, avg confidence)
-- [ ] Deep ensemble
+- [x] Baseline calibration (ECE, NLL, average confidence)
+- [ ] Deep ensemble (3 seeds)
 - [ ] MC dropout
 - [ ] Test-time augmentation
 - [ ] Distribution shift (CIFAR-10-C, SVHN)
-- [ ] Reliability diagrams and results table
+- [ ] Reliability diagrams
 
-## Results so far
-| Model | Test accuracy |
-|---|---|
-| Baseline CNN (single run) | 90.3% |
+## Results so far (clean CIFAR-10 test set)
+| Model | Accuracy | Avg confidence | ECE | NLL |
+|---|---|---|---|---|
+| Baseline CNN (single run) | 90.3% | 93.0% | 0.028 | 0.294 |
 
-Notes: one training run, one random seed, 15 epochs. Accuracy may vary by a
-few tenths of a percent between runs. Calibration results will be added next.
+The baseline is slightly overconfident: it reports 93.0% confidence on
+average but is right 90.3% of the time. Results are from one training run
+and one seed, and may vary by a few tenths of a percent between runs.
 
 ## Run it
 1. Open `01_baseline_cnn.ipynb` in Google Colab.
@@ -42,4 +49,4 @@ few tenths of a percent between runs. Calibration results will be added next.
 ## Limitations (so far)
 - Single seed, so no confidence intervals yet.
 - Small CNN, not a state-of-the-art architecture.
-- Calibration and distribution shift not yet evaluated.
+- Distribution shift not yet evaluated.
