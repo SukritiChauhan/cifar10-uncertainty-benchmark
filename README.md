@@ -1,9 +1,9 @@
 # CIFAR-10 Uncertainty Benchmark
 
 Comparing ways to make an image classifier's confidence more trustworthy:
-deep ensembles, MC dropout, and test-time augmentation (TTA). The question:
-which cheap method gives the most honest confidence, especially when the
-data changes?
+deep ensembles, MC dropout, temperature scaling, and (in progress)
+test-time augmentation. The question: which cheap method gives the most
+honest confidence, and does it hold up when the data changes?
 
 ## Motivation
 Classifiers often report high confidence even when they are wrong
@@ -29,36 +29,40 @@ simple, practical methods and their compute cost.
 - [x] Baseline calibration (ECE, NLL, average confidence)
 - [x] Deep ensemble (3 seeds)
 - [x] MC dropout
+- [x] Temperature scaling
 - [ ] Test-time augmentation
 - [ ] Distribution shift (corrupted images, SVHN)
 - [ ] Reliability diagrams
 
-## Results so far (clean CIFAR-10 test set)
-| Model | Accuracy | Avg confidence | ECE | NLL |
-|---|---|---|---|---|
-| Single CNN, seed 0 | 90.3% | 93.2% | 0.030 | 0.297 |
-| Single CNN, seed 1 | 90.5% | 92.9% | 0.025 | 0.292 |
-| Single CNN, seed 2 | 90.3% | 92.7% | 0.025 | 0.298 |
-| MC dropout (seed 0 model, T=20) | 90.2% | 92.4% | 0.023 | 0.291 |
-| Deep ensemble (3 seeds) | 91.5% | 91.7% | 0.010 | 0.253 |
+## Results (clean CIFAR-10, same 5,000 test images, mean of 3 seeds)
+Temperature scaling was fitted on the other 5,000 test images.
 
-The ensemble improves accuracy by about 1 point and brings average
-confidence in line with accuracy (91.7% confidence vs 91.5% accuracy),
-at 3x the training and inference compute. Single models are slightly
-overconfident (about 2.5 points). The first baseline run in notebook 01
-(unseeded) scored 90.3% accuracy, ECE 0.028, consistent with the seeded runs.
+| Method | Accuracy | Avg confidence | ECE | NLL | Cost |
+|---|---|---|---|---|---|
+| Single CNN | 90.6% | 93.1% | 0.026 | 0.290 | 1x |
+| + temperature scaling | 90.6% | 90.4% | 0.008 | 0.277 | ~1x |
+| + MC dropout (T=20) | 90.7% | 92.3% | 0.019 | 0.286 | ~1x |
+| Deep ensemble (3 seeds) | 91.6% | 91.8% | 0.011 | 0.247 | 3x |
+| Ensemble + temperature scaling | 91.6% | 91.0% | 0.010 | 0.246 | 3x |
+
+Findings:
+- Temperature scaling alone reduced ECE from about 0.026 to 0.008 across all three seeds (fitted temperatures 1.30 to 1.34), at essentially no cost.
+- The ensemble improved accuracy by about 1 point and gave the best NLL, at 3x compute. Its ECE is comparable to temperature scaling's.
+- MC dropout gave a smaller calibration gain; dropout is applied only before the final layer, which likely limits its effect.
+- An ensemble gains almost nothing from extra temperature scaling (fitted T = 1.08), since it is already close to calibrated.
 
 ## Notebooks
 - `01_baseline_cnn.ipynb`: data pipeline, model, training, baseline calibration
-- `02_ensemble.ipynb`: 3-seed deep ensemble
+- `02_ensemble.ipynb`: 3-seed ensemble, MC dropout, temperature scaling comparison
 
 ## Run it
 1. Open a notebook in Google Colab.
 2. Set Runtime to a GPU (T4).
 3. Run all cells top to bottom. The first run downloads CIFAR-10 (~170 MB).
 
-## Limitations (so far)
-- Only three seeds, so no statistical confidence intervals yet.
-- ECE depends on the number of bins, and differences of a few thousandths are within noise.
+## Limitations
+- Only three seeds, so no formal confidence intervals.
+- Temperature scaling was fitted on half of the test set rather than a separate validation set.
+- ECE differences of a few thousandths (for example 0.008 vs 0.011) are within noise at 5,000 images.
 - Small CNN, not a state-of-the-art architecture.
 - Evaluated on clean test data only; distribution shift not yet tested.
