@@ -32,7 +32,8 @@ simple, practical methods and their compute cost.
 - [x] Temperature scaling
 - [x] Test-time augmentation
 - [x] Distribution shift (Gaussian noise, Gaussian blur)
-- [ ] Reliability diagrams
+- [x] Reliability diagrams
+  ![Reliability diagrams](reliability.png)
 - [ ] Out-of-distribution data (SVHN)
 
 ## Results on clean CIFAR-10 (same 5,000 test images, mean of 3 seeds)
